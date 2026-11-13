@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Organigrama y Sistema de Gobernanza IAROF</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>
+body{font-family:Georgia,'Times New Roman',serif;background:#0b1220}
+.ui{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+.node{transition:opacity .25s,box-shadow .25s}
+.dim{opacity:.28;filter:grayscale(.6)}
+.hl{box-shadow:0 0 0 3px #fff,0 0 22px rgba(255,255,255,.35)}
+.tier::after{content:"";display:block;width:2px;height:22px;background:#94a3b8;margin:10px auto 0}
+.tier:last-child::after{display:none}
+button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#app{background:#0b1220!important;color:#e2e8f0!important;min-height:100vh;font-family:Georgia,'Times New Roman',serif;line-height:1.5}
+#app h1,#app h2,#app h3{color:#f8fafc!important;margin:0}
+#app button{background:#1e293b!important;color:#f1f5f9!important;border:1px solid #94a3b8!important;border-radius:6px;font-family:system-ui,sans-serif;cursor:pointer;text-transform:none!important;letter-spacing:normal!important;box-shadow:none!important}
+#app button:hover{background:#334155!important}
+#app button.on{background:#f1f5f9!important;color:#0f172a!important;border-color:#fff!important}
+#app .tg{background:transparent!important;border:0!important;text-decoration:underline;padding:0!important}
+#app .node{border-style:solid;border-width:1px 1px 1px 4px;color:#f8fafc}
+#app .c-p{background:#1e1b4b;border-color:#818cf8}.t-p{color:#c7d2fe}
+#app .c-s{background:#3b0764;border-color:#c084fc}.t-s{color:#e9d5ff}
+#app .c-e{background:#082f49;border-color:#38bdf8}.t-e{color:#bae6fd}
+#app .c-a{background:#022c22;border-color:#34d399}.t-a{color:#a7f3d0}
+#app .c-t{background:#451a03;border-color:#fbbf24}.t-t{color:#fde68a}
+#app .c-d{background:#4c0519;border-color:#fb7185}.t-d{color:#fecdd3}
+#app .fr{border:2px solid;border-radius:14px;padding:12px 14px;margin:0 auto}
+#app .fr-m{border-color:#818cf8;background:rgba(99,102,241,.10)}
+#app .fr-p{border-color:#fbbf24;background:rgba(251,191,36,.06)}
+.split .fr-p{border-style:dashed}
+.ftitle{text-align:center;font-family:system-ui,sans-serif;font-weight:600;font-size:13px;margin-bottom:10px}
+.fr-m .ftitle{color:#c7d2fe}.fr-p .ftitle{color:#fde68a}
+.gap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0;transition:padding .3s}
+.split .gap{padding:40px 0}
+#app button{font-size:12px!important;padding:5px 10px!important;line-height:1.25}
+#app .node{width:14rem}
+@media(max-width:640px){
+ #app .node{width:100%;max-width:20rem}
+ #app .grp{width:100%}
+ .arr{display:inline-block;transform:rotate(90deg)}
+ #app .fr{padding:8px}
+}
+.only-split{display:none}.split .only-split{display:revert}.split .only-join{display:none}
+</style>
+</head>
+<body><div id="app">
+<header class="ui px-3 py-2 border-b border-slate-600 bg-slate-900">
+  <div class="flex flex-wrap items-center gap-3 justify-between">
+    <h1 class="text-base sm:text-lg font-semibold" style="font-family:Georgia,serif">Organigrama y Sistema de Gobernanza · Ciclo IAROF</h1>
+    <nav class="flex gap-1 text-sm">
+      <button id="tab-org" class="px-3 py-1.5 rounded on">Organigrama</button>
+      <button id="tab-man" class="px-3 py-1.5 rounded">Manual operativo</button>
+    </nav>
+  </div>
+  <div id="ctlwrap"><button id="ctog" class="mt-2 px-3 py-1.5 text-xs" aria-expanded="false">Filtros, simulador y vista ▾</button>
+  <div id="controls" class="mt-2 grid gap-2 text-xs hidden">
+    <div class="flex flex-wrap items-center gap-1.5"><span class="w-full sm:w-24 text-slate-300">Nivel</span><span id="f-nivel" class="flex flex-wrap gap-1.5"></span></div>
+    <div class="flex flex-wrap items-center gap-1.5"><span class="w-full sm:w-24 text-slate-300">Método IAROF</span><span id="f-iarof" class="flex flex-wrap gap-1.5"></span></div>
+    <div class="flex flex-wrap items-center gap-1.5"><span class="w-full sm:w-24 text-slate-300">Proceso</span><span id="f-proc" class="flex flex-wrap gap-1.5"></span></div>
+    <div class="flex flex-wrap items-center gap-1.5"><span class="w-full sm:w-24 text-slate-300">Simulador</span><span id="f-flow" class="flex flex-wrap gap-1.5"></span></div>
+    <div class="flex flex-wrap items-center gap-1.5"><span class="w-full sm:w-24 text-slate-300">Vista</span>
+      <button id="zin" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700" aria-label="Acercar">+</button>
+      <button id="zout" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700" aria-label="Alejar">−</button>
+      <button id="zrs" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700">Restablecer</button>
+      <button id="expall" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700">Expandir productos</button>
+      <button id="splitbtn" class="px-2.5 py-1 rounded">Separar estructuras</button>
+    </div>
+  </div>
+  </div>
+</header>
+
+<main id="view-org" class="p-2 sm:p-4">
+  <section id="info" class="ui grid md:grid-cols-2 xl:grid-cols-4 gap-3 max-w-7xl mx-auto mb-4 text-sm">
+ <div class="md:col-span-2 xl:col-span-4 rounded-lg border-2 border-rose-400 bg-slate-900 p-4"><h2 class="text-base mb-1">Dos estructuras que nacen juntas</h2><p class="text-slate-200">La estructura <b style="color:#c7d2fe">Metapolítica</b> (Segundo Piso y órganos asesores) concibe y controla desde fuera. La estructura <b style="color:#fde68a">Político-Parlamentaria</b>, todo lo dirigido por el Presidente Ejecutivo, es solo operativa y es un potencial partido político: cuando sea necesario se separa y debe cumplir las exigencias del SERVEL, con democracia interna para elegir las directivas de la presidencia, de los campos de acción y de las unidades regionales. La metapolítica conserva el control mediante un <b style="color:#fecdd3">vínculo de dependencia</b> diseñado para que las elecciones internas no desorganicen el partido. Usa «Separar estructuras» para ver la segunda fase.</p></div>
+ <div class="rounded-lg border border-indigo-400 bg-slate-900 p-4"><h2 class="text-base mb-1">Método IAROF</h2><p class="text-slate-200">Ciclo de conducción: Informarse, Apreciar, Resolver, Ordenar y Fiscalizar. Las tres primeras fases (I-A-R) las cumple el nivel político-estratégico; las dos últimas (O-F), los niveles estratégico, operativo y táctico. La fiscalización realimenta la información del ciclo siguiente, que se repite cada semana.</p></div>
+ <div class="rounded-lg border border-slate-400 bg-slate-900 p-4"><h2 class="text-base mb-1">Misiones del comandante</h2><ol class="space-y-1 text-slate-200"><li><b>Informarse:</b> reunir información e input.</li><li><b>Apreciar:</b> analizar la situación y la contingencia.</li><li><b>Resolver:</b> decidir planes y órdenes.</li><li><b>Ordenar:</b> bajar la decisión a quien debe ejecutarla.</li><li><b>Fiscalizar:</b> verificar el cumplimiento y reportar.</li></ol></div>
+ <div class="rounded-lg border border-slate-400 bg-slate-900 p-4"><h2 class="text-base mb-1">Niveles</h2><ul class="space-y-1 text-slate-200"><li><b style="color:#c7d2fe">Político-Estratégico:</b> Segundo Piso y órganos asesores. Lógica I-A-R; no opera por procesos.</li><li><b style="color:#e9d5ff">Estratégico:</b> Presidencia Ejecutiva, cabeza del nivel operativo. Lógica O-F.</li><li><b style="color:#bae6fd">Operativo:</b> Jefes de campos de acción. Lógica O-F.</li><li><b style="color:#fde68a">Táctico:</b> unidades regionales/comunales. Lógica O-F.</li></ul></div>
+ <div class="rounded-lg border border-slate-400 bg-slate-900 p-4"><h2 class="text-base mb-1">Estructura de procesos</h2><p class="text-slate-200 mb-1">Ordenan el área operativa, no el nivel político-estratégico.</p><dl class="space-y-1 text-slate-200"><dt style="color:#e9d5ff"><b>Estratégico</b></dt><dd>Presidencia Ejecutiva: conduce y coordina todas las áreas.</dd><dt style="color:#bae6fd"><b>Esenciales</b></dt><dd>Área Interna y Área Educativa: cumplen la misión.</dd><dt style="color:#a7f3d0"><b>De apoyo</b></dt><dd>Área Externa y Área Económica: habilitan a los demás.</dd></dl></div>
+</section>
+<section id="flowbox" class="ui hidden max-w-4xl mx-auto mb-4 p-3 rounded-lg bg-slate-900 border border-slate-600 text-sm"></section>
+  <div class="overflow-auto"><div id="stage" class="origin-top mx-auto" style="width:100%;max-width:1200px"></div></div>
+  <p class="ui text-center text-xs text-slate-500 mt-4">Haz clic en un nodo para ver su ficha completa.</p>
+  <section id="notas" class="ui max-w-4xl mx-auto mt-8 text-sm text-slate-300 space-y-4 leading-relaxed"></section>
+</main>
+
+<main id="view-man" class="hidden p-4 max-w-4xl mx-auto space-y-8 leading-relaxed">
+  <section>
+    <h2 class="text-2xl mb-3">1. La metodología IAROF aplicada</h2>
+    <div class="grid sm:grid-cols-5 gap-2 ui text-sm" id="iarof-grid"></div>
+    <p class="mt-3 text-slate-200">El nivel político-estratégico (Segundo Piso y órganos asesores) opera en lógica I-A-R y no por procesos. Los niveles estratégico (Presidencia Ejecutiva, cabeza del nivel operativo), operativo (Jefes de campos de acción) y táctico (unidades regionales/comunales) operan en lógica O-F. Los tres tipos de proceso (estratégico, esenciales y de apoyo) ordenan el área operativa.</p>
+  </section>
+  <section>
+    <h2 class="text-2xl mb-3">2. Ciclo semanal de contingencia</h2>
+    <ol id="steps" class="space-y-2 ui text-sm"></ol>
+  </section>
+  <section>
+    <h2 class="text-2xl mb-3">3. Reglas de gobernanza</h2>
+    <ul class="list-disc pl-6 space-y-2 text-slate-300">
+      <li><b>Unidad de mando:</b> las órdenes bajan a través del Presidente Ejecutivo, que responde y reporta directamente al Segundo Piso.</li>
+      <li><b>Validación doctrinal:</b> la Malla curricular del Área Educativa debe ser validada ideológicamente por el Segundo Piso.</li>
+      <li><b>Consejo de Militantes vs. Círculo General:</b> el Consejo de Militantes es anual y nacional (Formación general, Área Interna). El Círculo General es la reunión periódica de los militantes de cada unidad comunal, para cohesión local y bajada operativa.</li>
+      <li><b>Separación de funciones:</b> quien resuelve (I-A-R) no ejecuta; quien ejecuta (O-F) no define la estrategia, pero la asesora desde la Plana Mayor.</li>
+      <li><b>Doble canal de información:</b> hacia abajo, planes y órdenes; hacia arriba, fiscalización, reportes y asesoría de la Plana Mayor y el Secretario General.</li>
+      <li><b>Despliegue fractal:</b> cada unidad regional o comunal replica los cuatro Campos de Acción.</li>
+      <li><b>Secretario General:</b> manda el campo de acción Interno y depende del Presidente Ejecutivo; no es un cargo paralelo a la Presidencia Ejecutiva.</li>
+      <li><b>Junta de Comandantes Regionales:</b> reunión periódica de los jefes de unidades regionales/comunales con el Segundo Piso, el Presidente Ejecutivo y el Secretario General, para informar la situación del personal.</li>
+      <li><b>Dos estructuras:</b> la Metapolítica (Segundo Piso y órganos asesores) y la Político-Parlamentaria (todo lo dirigido por el Presidente Ejecutivo, potencial partido) nacen juntas y se separan cuando sea necesario, bajo una lógica jerárquica.</li>
+      <li><b>Democracia interna:</b> al constituirse el partido, las directivas de la presidencia, los campos de acción y las unidades regionales se eligen conforme a la ley de partidos y al SERVEL.</li>
+      <li><b>Vínculo de dependencia:</b> la metapolítica controla desde fuera mediante convenio, servicios, doctrina en el estatuto, cantera de cuadros, elecciones escalonadas y respaldo de activos; no mediante órdenes a autoridades electas.</li>
+      <li><b>Niveles, método y procesos:</b> son tres ejes distintos. Los niveles son cuatro; el método es IAROF; los procesos son tres y solo ordenan el área operativa.</li>
+      <li><b>Estructura dual y modular:</b> la parte estratégica y la operativa se crean según las necesidades, módulo a módulo.</li>
+    </ul>
+  </section>
+</main>
+
+<aside id="drawer" class="ui fixed bottom-0 left-0 right-0 h-[80vh] sm:top-0 sm:left-auto sm:h-full sm:w-[26rem] bg-slate-900 border-t sm:border-t-0 sm:border-l border-slate-500 rounded-t-xl sm:rounded-none z-[9999] translate-y-full sm:translate-y-0 sm:translate-x-full transition-transform duration-300 overflow-y-auto p-5" aria-hidden="true">
+  <button id="close" class="sticky top-0 float-right px-3 py-1 rounded" aria-label="Cerrar">✕</button>
+  <div id="dcontent"></div>
+</aside>
+
+<script>
+const T={
+ p:{n:'No opera por procesos (nivel político-estratégico)',card:'c-p',tx:'t-p',bg:'#818cf8'},
+ s:{n:'Proceso estratégico',card:'c-s',tx:'t-s',bg:'#c084fc'},
+ e:{n:'Proceso esencial (misional)',card:'c-e',tx:'t-e',bg:'#38bdf8'},
+ a:{n:'Proceso de apoyo (habilitador)',card:'c-a',tx:'t-a',bg:'#34d399'},
+ t:{n:'Despliegue territorial: replica los 4 campos de acción',card:'c-t',tx:'t-t',bg:'#fbbf24'},
+ d:{n:'Vínculo de dependencia (no es un proceso)',card:'c-d',tx:'t-d',bg:'#fb7185'}
+};
+const LVN={0:'Vínculo entre estructuras',1:'Político-Estratégico',2:'Estratégico',3:'Operativo',4:'Táctico'};
+const N=[
+{id:'cong',t:'p',n:'Congresos Ideológicos',sub:'Órgano asesor · anual, masivo y selectivo',iar:['IAR'],lvl:1,
+ d:'Órgano asesor del Segundo Piso. Ampliado quizá anual, más masivo pero selectivo, que captura input doctrinario y político. Nutre la planificación estratégica; no decide.',
+ p:['Input doctrinario','Input político','Insumos a la planificación estratégica'],r:'Asesora al Segundo Piso',o:'No emite órdenes',c:'Segundo Piso, Reuniones Intelectuales, Junta de Comandantes Regionales'},
+{id:'seg',t:'p',n:'Segundo Piso',sub:'Directorio Estratégico',iar:['IAR'],lvl:1,
+ d:'Lleva el control directo de la orgánica desde la estrategia. Ejecuta de forma exclusiva Informarse, Apreciar y Resolver. No opera por procesos. Se nutre de tres órganos asesores y estudia la contingencia para adecuar el actuar de los campos de acción.',
+ p:['Largo plazo (10 años): Plan General Estratégico','Mediano plazo (anual): Planes Anuales por cada Campo de Acción','Corto plazo (semanal): Órdenes Operativas semanales, emanadas del estudio de la contingencia'],
+ r:'Cúspide del sistema; se nutre de sus tres órganos asesores',o:'Presidente Ejecutivo (unidad de mando)',c:'Congresos Ideológicos, Reuniones Intelectuales, Junta de Comandantes Regionales, Presidente Ejecutivo'},
+{id:'reun',t:'p',n:'Reuniones Intelectuales',sub:'Órgano asesor · 3 o 4 personas, periódico',iar:['IAR'],lvl:1,
+ d:'Órgano asesor circunscrito a 3 o 4 personas, de reunión más periódica que los congresos. Define lineamientos generales, sentido y dirección, y nutre la planificación estratégica del Segundo Piso.',
+ p:['Lineamientos generales','Sentido y dirección','Insumos a la planificación estratégica'],r:'Asesora al Segundo Piso',o:'No emite órdenes',c:'Segundo Piso, Congresos Ideológicos, Presidente Ejecutivo'},
+{id:'junta',t:'p',n:'Junta de Comandantes Regionales',sub:'Órgano asesor · reunión periódica',iar:['IAR'],lvl:1,
+ d:'Reunión periódica de los jefes de unidades regionales/comunales con el Segundo Piso, como órgano asesor al mismo nivel que los Congresos y las Reuniones Intelectuales. Entrega input sobre la situación del personal. Participan además el Presidente Ejecutivo (coordinador de todas las áreas) y el Secretario General (jefe del campo de acción Interno).',
+ p:['Input sobre la situación del personal','Monitoreo de la militancia','Retroalimentación territorial'],r:'Asesora al Segundo Piso',o:'No emite órdenes',c:'Segundo Piso, Presidente Ejecutivo, Secretario General, Jefes de unidades regionales/comunales'},
+{id:'pres',t:'s',n:'Presidente Ejecutivo',sub:'Cabeza del nivel operativo · proceso estratégico',iar:['OF'],lvl:2,
+ d:'Cabeza del nivel operativo y de toda la estructura Político-Parlamentaria (potencial partido político); responsable de todas las acciones de Ordenar y Fiscalizar (O-F). Pertenece al equipo del Segundo Piso y participa en su diseño, pero su rol es de bisagra: coordina la ejecución de los planes estratégicos y las órdenes semanales en todas las áreas, incluida el Área Interna que manda el Secretario General. Responde y reporta directamente al Segundo Piso.',
+ p:['Coordinación de planes estratégicos','Bajada de órdenes semanales por áreas','Reportes de fiscalización al Segundo Piso'],
+ r:'Segundo Piso',o:'Jefes de los 4 campos de acción (el Secretario General como jefe del Área Interna)',c:'Segundo Piso, Junta de Comandantes Regionales'},
+{id:'secgen',t:'e',n:'Secretario General',sub:'Jefe del campo de acción Interno',iar:['OF'],lvl:3,
+ d:'Es el cargo que manda el campo de acción Interno. No es paralelo a la Presidencia Ejecutiva: depende de ella. Conecta el campo Interno con las unidades regionales/comunales y participa en la Junta de Comandantes Regionales.',
+ p:['Mando del Área Interna','Enlace orgánico nacional con las unidades regionales/comunales','Participación en la Junta de Comandantes Regionales'],
+ r:'Presidente Ejecutivo',o:'Área Interna y, a través de ella, unidades regionales/comunales',c:'Presidente Ejecutivo, Segundo Piso, Jefes de unidades'},
+{id:'interna',t:'e',n:'Área Interna',sub:'Orgánica, bases, sedes, personal',iar:['OF'],lvl:3,
+ d:'Campo de acción esencial (misional) a cargo de la orgánica, las bases, las sedes y el personal. Lo manda el Secretario General y se aplica en terreno en las unidades regionales/comunales, que tienen una estructura similar a la operativa nacional.',
+ p:['Unidades regionales','Formación general (Consejo de Militantes anual)','Control de militantes','Plan de enlace','Bienestar del personal'],
+ r:'Secretario General (su jefe), y por él el Presidente Ejecutivo',o:'Unidades regionales y comunales',c:'Demás áreas, Presidente Ejecutivo'},
+{id:'educ',t:'e',n:'Área Educativa',sub:'Formación de cuadros',iar:['OF'],lvl:3,
+ d:'Campo de acción esencial dedicado a la formación de cuadros.',
+ p:['Malla curricular (validada ideológicamente por el Segundo Piso)','Plan de formación (cursos y seminarios)','Publicaciones'],
+ r:'Presidente Ejecutivo',o:'Área Educativa de unidades regionales y comunales',c:'Segundo Piso (validación doctrinal), Área Interna'},
+{id:'externa',t:'a',n:'Área Externa',sub:'Difusión e incidencia',iar:['OF'],lvl:3,
+ d:'Proceso de apoyo habilitador a cargo de la difusión y la incidencia pública y parlamentaria.',
+ p:['Conferencias de prensa','Columnas de opinión','Política parlamentaria','Publicaciones y programas de RRSS','Actualización web'],
+ r:'Presidente Ejecutivo',o:'Área Externa de unidades regionales y comunales',c:'Área Educativa (publicaciones), Área Económica'},
+{id:'econ',t:'a',n:'Área Económica',sub:'Sostenibilidad',iar:['OF'],lvl:3,
+ d:'Proceso de apoyo habilitador que asegura la sostenibilidad de la organización.',
+ p:['Tesorería y gestión de recursos (levantamiento de fondos)','Soluciones logísticas transversales'],
+ r:'Presidente Ejecutivo',o:'Área Económica de unidades regionales y comunales',c:'Todas las áreas (apoyo transversal)'},
+{id:'regional',t:'t',n:'Unidades Regionales / Comunales',sub:'Aplicación en terreno del campo Interno',iar:['OF'],lvl:4,
+ d:'Aplican en terreno el campo de acción Interno. Tienen una estructura similar a la operativa nacional: replican los 4 Campos de Acción. Sus jefes integran la Junta de Comandantes Regionales.',
+ p:['Área Interna territorial','Área Educativa territorial','Área Externa territorial','Área Económica territorial'],
+ r:'Secretario General (jefe del campo Interno)',o:'Plana Mayor y Círculo General',c:'Secretario General, Junta de Comandantes Regionales'},
+{id:'plana',t:'t',n:'Plana Mayor',sub:'Directiva comunal',iar:['OF'],lvl:4,
+ d:'Directiva de la unidad, encabezada por su jefe (comandante regional/comunal). Doble rol: (1) dirige la unidad ejecutando planes y órdenes semanales (O-F); (2) actúa como órgano asesor del Segundo Piso a través de la Junta de Comandantes Regionales.',
+ p:['Dirección de la unidad comunal','Ejecución de planes y órdenes semanales','Asesoría al Segundo Piso','Reunión periódica con Segundo Piso, Presidente Ejecutivo, Secretario General y Jefes de Plana Mayor (situación del personal y la militancia)'],
+ r:'Secretario General (campo Interno)',o:'Círculo General',c:'Junta de Comandantes Regionales, Segundo Piso'},
+{id:'circulo',t:'t',n:'Círculo General',sub:'Bases comunales',iar:['OF'],lvl:4,
+ d:'Reunión periódica de los militantes de la unidad comunal. Es distinta del Consejo de Militantes anual nacional. Espacio de cohesión local y de bajada operativa.',
+ p:['Reunión periódica de militantes','Cohesión local','Bajada operativa'],
+ r:'Plana Mayor',o:'Militancia de la unidad comunal',c:'Plana Mayor'},
+{id:'dep',t:'d',n:'Vínculo de dependencia',sub:'Control externo de la metapolítica sobre el partido',iar:['IAR','OF'],lvl:0,
+ d:'Nexo jerárquico entre la estructura Metapolítica y la Político-Parlamentaria. Como el partido deberá elegir sus directivas por democracia interna y respetar al SERVEL, el control no puede ser una orden directa a autoridades electas: se construye con dependencias pactadas que resistan los cambios de directiva, para que los procesos electorales internos no desorganicen la estructura.',
+ p:['Convenio marco escrito entre ambas estructuras, que no depende de personas','Servicios que el partido necesita: formación de cuadros, doctrina, plan estratégico, logística y plataformas','Marco doctrinal fijado en la declaración de principios y el estatuto, con quórum alto para modificarlo','Cantera de cuadros formados y validados: el control actúa sobre la oferta de candidatos, no sobre el resultado de las elecciones','Elecciones escalonadas por cargos y territorios, para no renovar toda la cadena a la vez','Continuidad técnica: personal y procesos operativos que sobreviven al cambio de directivas','Fiscalización y rendición periódica al Segundo Piso, con alertas tempranas en vez de órdenes','Respaldo de activos, plataformas y propiedad intelectual de la estructura metapolítica, con cláusula de salida pactada','Compromiso de lealtad doctrinal de candidatos y directivos (pacto político)','Diseño sujeto a validación con asesoría legal electoral (autonomía del partido y normativa SERVEL)'],
+ r:'Lo diseña y vigila el Segundo Piso',o:'Estructura Político-Parlamentaria, en lo pactado',c:'Presidente Ejecutivo, Junta de Comandantes Regionales'}
+];
+const byId=Object.fromEntries(N.map(n=>[n.id,n]));
+const FLOWS={
+1:{n:'Cascada estratégica',steps:[
+ {l:'10 años',ids:['cong','reun','junta','seg'],tx:'Los Congresos, las Reuniones Intelectuales y la Junta de Comandantes Regionales nutren al Segundo Piso, que emite el Plan General Estratégico (10 años).'},
+ {l:'Anual',ids:['seg','pres','secgen','interna','educ','externa','econ'],tx:'El Segundo Piso emite los Planes Anuales por cada Campo de Acción. El Presidente Ejecutivo coordina todas las áreas; el Secretario General manda el Área Interna.'},
+ {l:'Semanal',ids:['seg','dep','pres'],tx:'Del estudio de la contingencia salen las Órdenes Operativas semanales que adecuan el actuar de los campos de acción.'},
+ {l:'Territorio',ids:['secgen','regional','plana','circulo'],tx:'El campo Interno aplica en terreno las órdenes y planes en las unidades regionales/comunales, con la misma estructura de cuatro campos.'}]},
+2:{n:'Retroalimentación y asesoría',steps:[
+ {l:'Bases',ids:['circulo'],tx:'El Círculo General recoge la situación de la militancia en la unidad comunal.'},
+ {l:'Unidad',ids:['plana','regional'],tx:'La Plana Mayor ejecuta y, a la vez, sistematiza la realidad local para asesorar.'},
+ {l:'Junta',ids:['junta','pres','secgen'],tx:'Los jefes de unidades se reúnen periódicamente en la Junta de Comandantes Regionales con el Presidente Ejecutivo y el Secretario General.'},
+ {l:'Segundo Piso',ids:['seg','cong','reun','junta'],tx:'El Segundo Piso recibe el input de la Junta, junto con los Congresos y las Reuniones Intelectuales, y lo incorpora a la planificación estratégica.'}]},
+3:{n:'El reloj semanal',steps:[
+ {l:'Lunes',ids:['seg','reun'],tx:'Paso 1 · El Segundo Piso analiza la contingencia (Informarse y Apreciar).'},
+ {l:'Martes',ids:['seg'],tx:'Paso 2 · El Segundo Piso resuelve y emite la Orden Operativa semanal.'},
+ {l:'Miércoles',ids:['pres','secgen'],tx:'Paso 3 · El Presidente Ejecutivo baja la orden a las áreas; el Secretario General la transmite por el campo Interno hacia el territorio.'},
+ {l:'Jueves',ids:['interna','educ','externa','econ'],tx:'Paso 4 · Ejecución en los Campos de Acción nacionales.'},
+ {l:'Viernes–Sábado',ids:['regional','plana','circulo'],tx:'Paso 4 · Ejecución en unidades regionales/comunales y Círculos Generales.'},
+ {l:'Domingo',ids:['plana','secgen','pres','dep','seg'],tx:'Paso 5 · Fiscalización y reporte: la información sube hasta el Segundo Piso y alimenta el lunes siguiente.'}]}
+};
+const LV=[
+ {k:1,t:'Nivel Político-Estratégico · lógica I-A-R · Segundo Piso y órganos asesores (no opera por procesos)'},
+ {k:2,t:'Nivel Estratégico · lógica O-F · Presidencia Ejecutiva, cabeza del nivel operativo'},
+ {k:3,t:'Nivel Operativo · lógica O-F · Jefes de campos de acción · procesos esenciales y de apoyo'},
+ {k:4,t:'Nivel Táctico · lógica O-F · Unidades regionales/comunales'}];
+const S={split:false,nivel:'all',iarof:'all',proc:'all',flow:0,step:0,zoom:1,open:new Set(),all:false};
+const $=s=>document.querySelector(s);
+const DC=['translate-y-full','sm:translate-y-0','sm:translate-x-full'];
+const bcls='px-2.5 py-1 rounded';
+
+function badge(n){return n.iar.map(x=>`<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold" style="background:${x=='IAR'?'#6366f1':'#e2e8f0'};color:${x=='IAR'?'#fff':'#0f172a'}">${x=='IAR'?'I-A-R':'O-F'}</span>`).join(' ')}
+function card(n){
+ const c=T[n.t];
+ return `<div class="node ui relative rounded-lg border-l-4 border ${c.card} p-3 cursor-pointer" data-id="${n.id}" tabindex="0" role="button">
+  <span class="step hidden absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white text-slate-900 text-xs font-bold items-center justify-center">✓</span>
+  <div class="flex gap-1 mb-1.5">${badge(n)}</div>
+  <div class="font-semibold text-sm leading-snug">${n.n}</div>
+  <div class="text-xs ${c.tx} mt-0.5">${n.sub}</div>
+  <button class="tg mt-2 text-[11px] text-slate-300 underline" data-tg="${n.id}"></button>
+  <ul class="prods mt-1 text-[11px] text-slate-300 list-disc pl-4 space-y-0.5"></ul></div>`}
+function build(){
+ const B={};
+ LV.forEach(L=>{
+  let body;
+  const arrow=t=>`<span class="ui arr text-slate-300 text-xl" title="nutre">${t}</span>`;
+  if(L.k==1){
+   body=`<div class="flex flex-wrap items-center justify-center gap-2">${card(byId.cong)}${arrow('➜')}${card(byId.seg)}${arrow('⬅')}${card(byId.reun)}</div>
+   <div class="ui text-xs text-slate-300 text-center my-2">Órganos asesores: nutren la planificación estratégica del Segundo Piso</div>
+   <div class="flex flex-wrap items-center justify-center gap-2">${card(byId.junta)}<span class="ui text-xs text-slate-300 max-w-[11rem]">⬆ asesora al Segundo Piso con input sobre la situación del personal</span></div>`;
+  } else if(L.k==3){
+   const col=`<div class="flex flex-col items-center gap-1 w-full sm:w-auto">${card(byId.secgen)}<span class="ui text-[11px] text-slate-300">▼ manda el campo Interno</span>${card(byId.interna)}</div>`;
+   const g=(t,inner)=>`<div class="px-3 grp"><div class="text-xs text-center mb-2 ${t=='e'?'text-blue-300':'text-emerald-300'}">${t=='e'?'Procesos esenciales (misionales)':'Procesos de apoyo (habilitadores)'}</div><div class="flex flex-wrap gap-3 justify-center items-end">${inner}</div></div>`;
+   body=`<div class="flex flex-wrap justify-center gap-6">${g('e',col+card(byId.educ))}${g('a',card(byId.externa)+card(byId.econ))}</div>`;
+  } else body=`<div class="flex flex-wrap gap-3 justify-center">${N.filter(n=>n.lvl==L.k).map(card).join('')}</div>`;
+  B[L.k]=`<div class="tier mb-1"><div class="ui text-xs text-slate-300 text-center mb-2">${L.t}</div>${body}</div>`});
+ const gap=`<div class="gap"><div class="ui text-xs text-slate-300">▼ conducción jerárquica y control externo</div>${card(byId.dep)}<div class="ui text-xs text-slate-300">▲ fiscalización, reportes e input</div>
+  <div class="ui text-xs text-center max-w-xl only-join">Fase 1 · Nacen juntas: una sola orgánica bajo una lógica jerárquica.</div>
+  <div class="ui text-xs text-center max-w-xl only-split">Fase 2 · Separadas: el partido es una entidad legal distinta; el vínculo de dependencia mantiene la jerarquía.</div></div>`;
+ $('#stage').innerHTML=`<div class="fr fr-m"><div class="ftitle">Estructura Metapolítica · control externo · lógica I-A-R</div>${B[1]}</div>${gap}<div class="fr fr-p"><div class="ftitle">Estructura Político-Parlamentaria · dirigida por el Presidente Ejecutivo · lógica O-F<span class="only-join"> · potencial partido político</span><span class="only-split"> · partido político (SERVEL, democracia interna)</span></div>${B[2]}${B[3]}${B[4]}</div>`;
+}
+function refresh(){
+ document.querySelectorAll('.node').forEach(el=>{
+  const n=byId[el.dataset.id];
+  let ok=true;
+  if(S.iarof!='all'&&!n.iar.includes(S.iarof))ok=false;
+  if(S.proc!='all'&&n.t!=S.proc)ok=false;
+  if(S.nivel!='all'&&n.lvl!=S.nivel)ok=false;
+  const fs=S.flow?FLOWS[S.flow].steps[S.step]:null;
+  const inStep=fs&&fs.ids.includes(n.id);
+  if(fs&&!inStep)ok=false;
+  el.classList.toggle('dim',!ok);
+  el.classList.toggle('hl',!!inStep);
+  const sp=el.querySelector('.step');
+  sp.classList.toggle('hidden',!inStep);sp.classList.toggle('flex',!!inStep);
+  if(inStep)sp.textContent=S.step+1;
+  const open=S.all||S.open.has(n.id);
+  el.querySelector('.prods').innerHTML=open?n.p.map(x=>`<li>${x}</li>`).join(''):'';
+  el.querySelector('.tg').textContent=open?'Ocultar productos':`Ver productos (${n.p.length})`;
+ });
+ document.querySelectorAll('[data-fn]').forEach(b=>b.classList.toggle('on',b.dataset.fn==S.nivel));
+ document.querySelectorAll('[data-fi]').forEach(b=>b.classList.toggle('on',b.dataset.fi==S.iarof));
+ document.querySelectorAll('[data-fp]').forEach(b=>b.classList.toggle('on',b.dataset.fp==S.proc));
+ document.querySelectorAll('[data-ff]').forEach(b=>b.classList.toggle('on',b.dataset.ff==S.flow));
+ $('#stage').style.transform=`scale(${S.zoom})`;
+ $('#stage').classList.toggle('split',S.split);$('#splitbtn').textContent=S.split?'Unir estructuras':'Separar estructuras';
+ $('#expall').textContent=S.all?'Colapsar productos':'Expandir productos';
+ const fb=$('#flowbox');
+ if(!S.flow){fb.classList.add('hidden');return}
+ const F=FLOWS[S.flow];fb.classList.remove('hidden');
+ fb.innerHTML=`<div class="font-semibold mb-2">Flujo ${S.flow}: ${F.n}</div><div class="flex flex-wrap gap-1.5 mb-2">${F.steps.map((s,i)=>`<button data-st="${i}" class="px-2.5 py-1 rounded text-xs ${i==S.step?'on':''}">${i+1}. ${s.l}</button>`).join('')}</div><p class="text-slate-300">${F.steps[S.step].tx}</p><div class="mt-2 flex gap-2 text-xs"><button id="prev" class="${bcls}">Anterior</button><button id="next" class="${bcls}">Siguiente</button></div>`;
+ fb.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{S.step=+b.dataset.st;refresh()});
+ $('#prev').onclick=()=>{S.step=Math.max(0,S.step-1);refresh()};
+ $('#next').onclick=()=>{S.step=Math.min(F.steps.length-1,S.step+1);refresh()};
+}
+function controls(){
+ $('#f-nivel').innerHTML=[['all','Todos'],[1,'Político-Estratégico'],[2,'Estratégico'],[3,'Operativo'],[4,'Táctico']].map(([k,l])=>`<button data-fn="${k}" class="${bcls}">${l}</button>`).join('');
+ $('#f-iarof').innerHTML=[['all','Todos'],['IAR','I-A-R'],['OF','O-F']].map(([k,l])=>`<button data-fi="${k}" class="${bcls}">${l}</button>`).join('');
+ $('#f-proc').innerHTML=[['all','Todos'],['s','Estratégico'],['e','Esenciales'],['a','Apoyo']].map(([k,l])=>`<button data-fp="${k}" class="${bcls}">${l}</button>`).join('');
+ $('#f-flow').innerHTML=[[0,'Ninguno'],[1,'Flujo 1 · Cascada'],[2,'Flujo 2 · Asesoría'],[3,'Flujo 3 · Reloj semanal']].map(([k,l])=>`<button data-ff="${k}" class="${bcls}">${l}</button>`).join('');
+ document.querySelectorAll('[data-fi]').forEach(b=>b.onclick=()=>{S.iarof=b.dataset.fi;refresh()});
+ document.querySelectorAll('[data-fn]').forEach(b=>b.onclick=()=>{S.nivel=b.dataset.fn;refresh()});
+ document.querySelectorAll('[data-fp]').forEach(b=>b.onclick=()=>{S.proc=b.dataset.fp;refresh()});
+ document.querySelectorAll('[data-ff]').forEach(b=>b.onclick=()=>{S.flow=+b.dataset.ff;S.step=0;refresh()});
+ $('#zin').onclick=()=>{S.zoom=Math.min(1.6,S.zoom+.1);refresh()};
+ $('#zout').onclick=()=>{S.zoom=Math.max(.4,S.zoom-.1);refresh()};
+ $('#zrs').onclick=()=>{S.zoom=1;S.split=false;S.nivel='all';S.iarof='all';S.proc='all';S.flow=0;S.step=0;S.open.clear();S.all=false;refresh()};
+ $('#splitbtn').onclick=()=>{S.split=!S.split;refresh()};
+ $('#expall').onclick=()=>{S.all=!S.all;refresh()};
+}
+function openDrawer(id){
+ const n=byId[id],c=T[n.t];
+ const lst=a=>`<ul class="list-disc pl-5 space-y-1 text-sm text-slate-300">${a.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+ const role=n.id=='dep'?'Puente entre I-A-R (metapolítica) y O-F (partido)':n.iar.length==2?'I-A-R (diseño) y O-F (ejecución)':n.iar[0]=='IAR'?'I-A-R: Informar, Apreciar, Resolver':'O-F: Ordenar, Fiscalizar';
+ $('#dcontent').innerHTML=`<div class="pr-10"><div class="flex gap-1.5 mb-2">${badge(n)}<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold" style="background:${c.bg};color:#0b1220">${LVN[n.lvl]}</span></div>
+ <h2 class="text-xl font-semibold" style="font-family:Georgia,serif">${n.n}</h2><p class="text-sm ${c.tx}">${n.sub}</p></div>
+ <dl class="mt-4 space-y-4 text-sm">
+ <div><dt class="font-semibold">Rol en el ciclo IAROF</dt><dd class="text-slate-300">${role}</dd></div>
+ <div><dt class="font-semibold">Nivel</dt><dd class="text-slate-200">${LVN[n.lvl]}${n.lvl==0?'':n.lvl==1?' · lógica I-A-R':' · lógica O-F'}</dd></div>
+ <div><dt class="font-semibold">Estructura</dt><dd class="text-slate-200">${n.lvl==0?'Vínculo entre ambas estructuras: debe sobrevivir a los cambios de directivas electas.':n.lvl==1?'Metapolítica. Permanece fuera del partido, como control externo.':'Político-Parlamentaria (potencial partido). Al constituirse, sus autoridades se eligen por democracia interna, conforme a la ley de partidos, el estatuto y la fiscalización del SERVEL.'}</dd></div>
+ <div><dt class="font-semibold">Tipo de proceso</dt><dd class="text-slate-200">${c.n}</dd></div>
+ <div><dt class="font-semibold">Funciones y alcance</dt><dd class="text-slate-300">${n.d}</dd></div>
+ <div><dt class="font-semibold mb-1">Productos / entregables</dt><dd>${lst(n.p)}</dd></div>
+ <div><dt class="font-semibold">Relaciones de mando</dt><dd class="text-slate-300 space-y-1 mt-1">
+  <p><b>Reporta a:</b> ${n.r}</p><p><b>Ordena a:</b> ${n.o}</p><p><b>Se coordina con:</b> ${n.c}</p></dd></div></dl>`;
+ DC.forEach(c=>$('#drawer').classList.remove(c));$('#drawer').setAttribute('aria-hidden','false');
+}
+function closeDrawer(){DC.forEach(c=>$('#drawer').classList.add(c));$('#drawer').setAttribute('aria-hidden','true')}
+function tab(m){
+ $('#view-org').classList.toggle('hidden',m);$('#ctlwrap').classList.toggle('hidden',m);
+ $('#view-man').classList.toggle('hidden',!m);
+ $('#tab-org').className='px-3 py-1.5 rounded '+(m?'':'on');
+ $('#tab-man').className='px-3 py-1.5 rounded '+(m?'on':'');
+ closeDrawer();
+}
+function manual(){
+ const I=[['I','Informarse','Reunir la información y el input doctrinario, político y del personal.'],['A','Apreciar','Analizar la situación y la contingencia.'],['R','Resolver','Decidir planes y órdenes.'],['O','Ordenar','Bajar la decisión a los campos de acción.'],['F','Fiscalizar','Verificar el cumplimiento y reportar.']];
+ $('#iarof-grid').innerHTML=I.map(([a,b,c],i)=>`<div class="rounded-lg p-3 border ${i<3?'border-indigo-500 bg-indigo-950':'border-slate-500 bg-slate-800'}"><div class="text-2xl font-bold">${a}</div><div class="font-semibold">${b}</div><div class="text-xs text-slate-300 mt-1">${c}</div><div class="text-[11px] mt-2 text-slate-300">${i<3?'Segundo Piso':'Nivel Ejecutivo-Operativo'}</div></div>`).join('');
+ const P=['Análisis de contingencia en el Segundo Piso, con el input de sus órganos asesores (lunes).','Emisión de la Orden Semanal por el Segundo Piso (martes).','Bajada del Presidente Ejecutivo a todas las áreas; el Secretario General la transmite por el campo Interno al territorio (miércoles).','Ejecución en los Campos de Acción y en los Círculos Generales (jueves a sábado).','Fiscalización y reporte hacia el Segundo Piso (domingo).'];
+ $('#steps').innerHTML=P.map((p,i)=>`<li class="flex gap-3 items-start p-3 rounded bg-slate-900 border border-slate-700"><span class="w-7 h-7 shrink-0 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">${i+1}</span><span>Paso ${i+1}: ${p}</span></li>`).join('');
+}
+const NOTES=[
+['Dos estructuras que nacen juntas','La orgánica nace como un solo sistema con dos estructuras. La Metapolítica (Segundo Piso y órganos asesores, lógica I-A-R) concibe, decide y controla desde fuera. La Político-Parlamentaria es toda la estructura dirigida por el Presidente Ejecutivo (niveles estratégico, operativo y táctico, lógica O-F): es solo operativa y es un potencial partido político. Cuando sea necesario, la segunda se separa de la primera. Aun separadas, operan bajo una lógica jerárquica: la metapolítica conduce y la político-parlamentaria ejecuta.'],
+['Democracia interna y SERVEL','Al constituirse como partido, la estructura Político-Parlamentaria debe cumplir los requisitos del SERVEL y de la ley de partidos: las directivas que encabezan la Presidencia, los campos de acción y las unidades regionales se eligen por democracia interna, con renovación periódica y fiscalización electoral. Cada cargo operativo pasa a ser un cargo electivo, que puede cambiar de titular sin que la estructura se desorganice.'],
+['Vínculo de dependencia','Como las autoridades del partido serán electas, la metapolítica no puede basar su control en órdenes directas ni en designaciones: chocaría con la autonomía del partido y con su democracia interna. El vínculo se diseña sobre dependencias pactadas que resisten los cambios de directiva: convenio marco escrito; servicios que el partido necesita (formación de cuadros, doctrina, plan estratégico, logística y plataformas); marco doctrinal fijado en la declaración de principios y el estatuto; cantera de cuadros formados y validados que nutre las candidaturas; elecciones escalonadas; continuidad técnica del personal; rendición periódica con alertas tempranas; respaldo de activos y cláusula de salida. Su diseño legal debe validarse con asesoría electoral antes de implementarlo.'],
+['Niveles, método y procesos','La orgánica se lee con tres ejes. Niveles: Político-Estratégico (Segundo Piso y órganos asesores), Estratégico (Presidencia Ejecutiva), Operativo (Jefes de campos de acción) y Táctico (unidades regionales/comunales). Método: IAROF; el nivel político-estratégico opera en lógica I-A-R y los otros tres en lógica O-F. Procesos: estratégico, esenciales y de apoyo, que ordenan solo el área operativa.'],
+['Estructura dual y modular','Hay una parte estratégica (Segundo Piso y órganos asesores) y una operativa (Presidencia Ejecutiva, campos de acción y territorio). Es una estructura dual que se va creando de acuerdo a las necesidades, con un enfoque modular: cada módulo (un órgano asesor, un campo de acción, una unidad regional/comunal) se activa cuando se requiere y se replica con la misma plantilla.'],
+['Nivel político-estratégico','El Segundo Piso (Directorio Estratégico) lleva el control directo de la orgánica desde la estrategia y no opera por procesos. Tiene tres órganos asesores, que no deciden y nutren su planificación: los Congresos Ideológicos (quizá anuales, más masivos pero selectivos), las Reuniones Intelectuales (más periódicas, de 3 o 4 personas) y la Junta de Comandantes Regionales. Entregables: Plan General Estratégico (10 años), Planes Anuales por campo de acción y Órdenes Operativas semanales emanadas del estudio de la contingencia.'],
+['Nivel estratégico: Presidencia Ejecutiva','El Presidente Ejecutivo es la cabeza del nivel operativo y responsable de todas las acciones de Ordenar y Fiscalizar. Pertenece al equipo del Segundo Piso y participa en su diseño, pero su función es de bisagra: coordina todas las áreas y responde y reporta directamente al Segundo Piso. Es el único canal de mando hacia los campos de acción (unidad de mando). Corresponde al proceso estratégico.'],
+['Nivel operativo: campos de acción','Los jefes de campo de acción ordenan y fiscalizan en su área. Esenciales: Área Interna y Área Educativa (Malla curricular validada ideológicamente por el Segundo Piso, Plan de formación con cursos y seminarios, Publicaciones). De apoyo: Área Externa (conferencias de prensa, columnas de opinión, política parlamentaria, publicaciones y programas de RRSS, actualización web) y Área Económica (tesorería y gestión de recursos, soluciones logísticas transversales).'],
+['Secretario General y campo Interno','El Secretario General es el cargo que manda el campo de acción Interno. No es paralelo a la Presidencia Ejecutiva: depende de ella. Productos del campo Interno: Unidades regionales, Formación general (Consejo de Militantes anual), Control de militantes, Plan de enlace y Bienestar del personal.'],
+['Nivel táctico: unidades regionales/comunales','El campo Interno se aplica en terreno en las unidades regionales/comunales, que tienen una estructura similar a la operativa nacional: replican los 4 campos de acción. Dependen del Secretario General como jefe del campo Interno.'],
+['Junta de Comandantes Regionales','Los jefes de unidades regionales/comunales se reúnen periódicamente con el Segundo Piso como órgano asesor, al nivel de los Congresos y las Reuniones Intelectuales. Participan además el Presidente Ejecutivo (coordinador de todas las áreas) y el Secretario General (jefe del campo Interno). Entrega input sobre la situación del personal y la militancia.'],
+['Plana Mayor y Círculo General','La Plana Mayor (directiva de la unidad) dirige ejecutando planes y órdenes (O-F) y asesora al Segundo Piso a través de la Junta. El Círculo General es la reunión periódica de los militantes de la unidad comunal, espacio de cohesión local y bajada operativa; es distinto del Consejo de Militantes anual nacional.'],
+['Flujos de información','Hacia abajo: planes anuales y órdenes semanales, por el Presidente Ejecutivo y el campo Interno. Hacia arriba: fiscalización, reportes y el input de la Junta, los Congresos y las Reuniones Intelectuales. El simulador muestra este recorrido.']];
+$('#notas').innerHTML='<h2 class="text-xl text-white" style="font-family:Georgia,serif">Notas explicativas de la orgánica</h2>'+NOTES.map(([t,x],i)=>`<div><h3 class="font-semibold text-white">${i+1}. ${t}</h3><p>${x}</p></div>`).join('');
+build();controls();manual();refresh();
+$('#stage').addEventListener('click',e=>{
+ const tg=e.target.closest('[data-tg]');
+ if(tg){e.stopPropagation();const id=tg.dataset.tg;S.open.has(id)?S.open.delete(id):S.open.add(id);S.all=false;refresh();return}
+ const nd=e.target.closest('.node');if(nd)openDrawer(nd.dataset.id);
+});
+$('#stage').addEventListener('keydown',e=>{if((e.key=='Enter'||e.key==' ')&&e.target.classList.contains('node')){e.preventDefault();openDrawer(e.target.dataset.id)}});
+$('#close').onclick=closeDrawer;
+document.addEventListener('keydown',e=>{if(e.key=='Escape')closeDrawer()});
+function ctl(o){$('#controls').classList.toggle('hidden',!o);$('#ctog').setAttribute('aria-expanded',o);$('#ctog').textContent='Filtros, simulador y vista '+(o?'▴':'▾')}
+ctl(innerWidth>=768);$('#ctog').onclick=()=>ctl($('#controls').classList.contains('hidden'));
+$('#tab-org').onclick=()=>tab(false);$('#tab-man').onclick=()=>tab(true);
+</script>
+</div>
+</body>
+</html>
